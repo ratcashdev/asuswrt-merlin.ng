@@ -432,7 +432,6 @@ const char * strBlogRequest[BLOG_REQUEST_MAX] =
     BLOG_ARY_INIT(BRIDGEFDB_KEY_SET)
     BLOG_ARY_INIT(BRIDGEFDB_KEY_GET)
     BLOG_ARY_INIT(BRIDGEFDB_TIME_SET)
-    BLOG_ARY_INIT(BRIDGEFDB_IFIDX_GET)
     BLOG_ARY_INIT(SYS_TIME_GET) 
     BLOG_ARY_INIT(GRE_TUNL_XMIT)
     BLOG_ARY_INIT(GRE6_TUNL_XMIT)
@@ -1692,6 +1691,7 @@ void blog_link( BlogNetEntity_t entity_type, Blog_t * blog_p,
             }
 
             blog_p->fdb[param1] = net_p;
+            blog_p->ifidx[param1] = param2;
             break;
         }
 
@@ -2209,16 +2209,6 @@ unsigned long blog_request( BlogRequest_t request, void * net_p,
         case BRIDGEFDB_TIME_SET:
             ((struct net_bridge_fdb_entry *)net_p)->updated = param2;
             return 0;
-
-        case BRIDGEFDB_IFIDX_GET:
-        {
-            struct net_bridge_fdb_entry *fdb_p = (struct net_bridge_fdb_entry *)net_p;
-            if (fdb_p && fdb_p->dst && fdb_p->dst->dev)
-                ret = fdb_p->dst->dev->ifindex;
-            else
-                ret = 0;
-            break;
-        }
 
         case NETIF_PUT_STATS:
         {
