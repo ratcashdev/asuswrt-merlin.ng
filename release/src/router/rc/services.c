@@ -175,6 +175,11 @@ void start_cron(void);
 void start_wlcscan(void);
 void stop_wlcscan(void);
 
+#ifdef HND_ROUTER
+void start_jitterentropy(void);
+void stop_jitterentropy(void);
+#endif
+
 
 #ifndef MS_MOVE
 #define MS_MOVE		8192
@@ -9335,6 +9340,9 @@ start_aura_rgb_sw(void)
 int
 start_services(void)
 {
+#ifdef HND_ROUTER
+	start_jitterentropy();
+#endif
 #if defined(RTAX82U) || defined(DSL_AX82U) || defined(GSAX3000) || defined(GSAX5400)
 	start_ledg();
 	start_ledbtn();
@@ -9363,9 +9371,6 @@ start_services(void)
 	start_netool();
 #endif
 	start_telnetd();
-#ifdef RTCONFIG_SSH
-	start_sshd();
-#endif
 #ifdef CONFIG_BCMWL5
 	start_eapd();
 	start_nas();
@@ -9711,6 +9716,9 @@ start_services(void)
 #if defined(RTCONFIG_QCA_PLC_UTILS) || defined(RTCONFIG_QCA_PLC2)
 	start_detect_plc();
 #endif
+#ifdef RTCONFIG_SSH
+	start_sshd();
+#endif
 
 	run_custom_script("services-start", 0, NULL, NULL);
 
@@ -9990,6 +9998,9 @@ stop_services(void)
 #endif
 #if defined(RTCONFIG_CFEZ) && defined(RTCONFIG_BCMARM)
 	stop_envrams();
+#endif
+#ifdef HND_ROUTER
+	stop_jitterentropy();
 #endif
 }
 
@@ -19384,3 +19395,21 @@ void PS_pod_main(void)
 	return;
 }
 #endif
+
+#ifdef HND_ROUTER
+void start_jitterentropy()
+{
+	pid_t pid;
+	char *cmd_argv[] = { "/usr/sbin/jitterentropy-rngd",
+	                     "-p", "/var/run/jitterentropy-rngd.pid",
+	                     NULL};
+
+        _eval(cmd_argv, NULL, 0, &pid);
+}
+
+void stop_jitterentropy()
+{
+	kill_pidfile_tk("/var/run/jitterentropy-rngd.pid");
+}
+#endif
+
